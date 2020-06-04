@@ -8,9 +8,10 @@ class proxyserve:
     
     def createProxyServer(self, webserver, port, conn, data, addr):
         try:
+            host = socket.gethostbyname(webserver)
             self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.serverSocket.connect((webserver, port))
-            self.serverSocket.send(data)
+            self.serverSocket.connect((host, port))
+            self.serverSocket.sendall(data)
 
             while True:
                 reply = self.serverSocket.recv(self.buffer_size)
@@ -20,5 +21,4 @@ class proxyserve:
                     break
             self.serverSocket.close()
         except Exception as e:
-            self.serverSocket.close()
             sys.exit(1)
