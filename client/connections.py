@@ -21,56 +21,10 @@ def parse_request(lines):
         headers.append(line.decode('utf-8'))
     return method, path, headers
 
-def mime_type(filename):
-    """Return a reasonable MIME type for the file or text/plain as a
-    fallback.
-    """
-    mt, _ = mimetypes.guess_type(filename)
-    if mt:
-        return mt
-    else:
-        return 'text/plain'
 
 def respond(method, path, headers):
     data = AsyncHTTPClient.fetch(path,headers,method)
     return data
-    # if b'?' in path:
-    #     path, query = path.split(b'?', 1)
-    # path = path.decode('utf8')
-
-   
-    # if path.startswith('/') and len(path) > 0:
-    #     filename = path[1:]
-    # else:
-    #     filename = path
-    # filename = os.path.join(ROOT, filename)
-
-    
-    # index_fn = os.path.join(filename, INDEX_FILENAME)
-    # if os.path.isdir(filename) and os.path.exists(index_fn):
-    #     filename = index_fn
-
-    # if os.path.isdir(filename):
-        
-    #     files = []
-    #     for name in os.listdir(filename):
-    #         files.append('<li><a href="%s">%s</a></li>' % (name, name))
-    #     html = "<html><head><title>%s</title></head><body>" \
-    #            "<h1>%s</h1><ul>%s</ul></body></html>""" % \
-    #            (path, path, ''.join(files))
-    #     return '200 OK', {'Content-Type': 'text/html'}, html
-
-    # elif os.path.exists(filename):
-        
-    #     with open(filename) as f:
-    #         return '200 OK', {'Content-Type': mime_type(filename)}, f.read()
-
-    # else:
-        
-    #     print('Not found.')
-    #     return '404 Not Found', {'Content-Type': 'text/html'}, \
-    #            '<html><head><title>404 Not Found</title></head>' \
-    #            '<body><h1>Not found.</h1></body></html>'
 
 def webrequest(conn):
     """A Bluelet coroutine implementing an HTTP server."""
