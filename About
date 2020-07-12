@@ -1,0 +1,7 @@
+It's like Vpn but what's stopping vpn service provider to sell your data I mean they are reputed provider but unless caught everyone is reputed So this tools allow you to make your remote server into your personal vpn service provider.
+
+How it works:
+
+There are two mode client and server, client mode is available at your pc you can pass port number to configure a listening port and then configure your device or browser to set this port as proxy and host is default localhost and the data pass to server is encrypted as all vpn 
+
+The server side made connection with client on specific port and recieve all request made from your device or browser the server side tool is running on your remote server

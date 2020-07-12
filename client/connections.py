@@ -1,90 +1,106 @@
-import socket
-import threading
+from __future__ import print_function
 import sys
+import os
+import mimetypes
+sys.path.insert(0, '..')
+from context import bluelet
+from .proxyserver import AsyncHTTPClient
+import json
 
-from .proxyserver import proxyserve
+ROOT = '.'
+INDEX_FILENAME = 'index.html'
 
-def threadconnection(connection, *args):
-    parse_data = parseconndata(*args)
-    connection.proxy = proxyserve()
-    for i in connection.proxy.createProxyServer(parse_data.webserver, parse_data.port, parse_data.conn, parse_data.data, parse_data.addr):
-        connection.conn.send(i)
+def parse_request(lines):
+    """Parse an HTTP request."""
+    method, path, version = lines.pop(0).split(None, 2)
+    headers = []
+    for line in lines:
+        if not line:
+            continue
+        # key, value = line.split(b': ', 1)
+        headers.append(line.decode('utf-8'))
+    return method, path, headers
 
-class parseconndata:
-    def __init__(self, data, conn, addr):
-        try:
-            encode_data = data
-            data = data.decode('utf-8')
-            url = data.split(' ')[1]
+def mime_type(filename):
+    """Return a reasonable MIME type for the file or text/plain as a
+    fallback.
+    """
+    mt, _ = mimetypes.guess_type(filename)
+    if mt:
+        return mt
+    else:
+        return 'text/plain'
 
-            host_pos = url.find('://')
-            if(host_pos == -1):
-                temp_url = url
-            else:
-                temp_url = url[(host_pos+3):]
+def respond(method, path, headers):
+    data = AsyncHTTPClient.fetch(path,headers,method)
+    return data
+    # if b'?' in path:
+    #     path, query = path.split(b'?', 1)
+    # path = path.decode('utf8')
 
-            port_pos = temp_url.find(':')
+   
+    # if path.startswith('/') and len(path) > 0:
+    #     filename = path[1:]
+    # else:
+    #     filename = path
+    # filename = os.path.join(ROOT, filename)
 
-            web_pos = temp_url.find('/')
-            if(web_pos == -1):
-                web_pos = len(temp_url)
-            port = -1
-            if(port_pos == -1 or web_pos < port_pos):
-                port = 80
-                webserver = temp_url[:web_pos]
-            else:
-                port = int((temp_url[(port_pos+1):])[web_pos-port_pos+1])
-                webserver = temp[:port_pos]
-            self.webserver, self.port, self.conn, self.addr, self.data = webserver, port, conn, addr, encode_data
-        except Exception as e:
-            print("Exit when parsing given url")
-            print(e)
-            print("Error on line ".format(sys.exc_info()[-1].tb_lineno))
-            sys.exit(2)
-
-
-class connection:
-    def __init__(self, config):
-        self.config = config
-        self.thread = []
-        try:
-            self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.serverSocket.bind((self.config['hostname'], self.config['portname']))
-
-            self.serverSocket.listen()
-            self._clients = {}
-            print("Socket Initialized")
-            self.initializeconnection()
-        except Exception as e:
-            print("Unable to initialized the Socket")
-            print(e)
-            sys.exit(2)
     
-    def initializeconnection(self):
-        while True:
-            try:
-                self.conn, self.addr = self.serverSocket.accept()
-                data = self.conn.recv(self.config['buffer_size'])
-                self.newthread(data, self.conn, self.addr)
-            except KeyboardInterrupt as e:
-                self.shutdown()
-        self.serverSocket.close()
+    # index_fn = os.path.join(filename, INDEX_FILENAME)
+    # if os.path.isdir(filename) and os.path.exists(index_fn):
+    #     filename = index_fn
 
-    def newthread(self, *args):
-        list2 = []
-        for i in args:
-            list2.append(i)
-        list1 = tuple([self] + list2)
-        try:
-            k = threading.Thread(target = threadconnection, args = list1)
-            k.start()
-            self.thread.append(k)
-        except Exception as e:
-            print("Connection closed starting new thread",e)
-            self.shutdown()
+    # if os.path.isdir(filename):
+        
+    #     files = []
+    #     for name in os.listdir(filename):
+    #         files.append('<li><a href="%s">%s</a></li>' % (name, name))
+    #     html = "<html><head><title>%s</title></head><body>" \
+    #            "<h1>%s</h1><ul>%s</ul></body></html>""" % \
+    #            (path, path, ''.join(files))
+    #     return '200 OK', {'Content-Type': 'text/html'}, html
 
-    def shutdown(self):
-        self.serverSocket.close()
-        print("Connection Closed")
-        sys.exit(1)
+    # elif os.path.exists(filename):
+        
+    #     with open(filename) as f:
+    #         return '200 OK', {'Content-Type': mime_type(filename)}, f.read()
+
+    # else:
+        
+    #     print('Not found.')
+    #     return '404 Not Found', {'Content-Type': 'text/html'}, \
+    #            '<html><head><title>404 Not Found</title></head>' \
+    #            '<body><h1>Not found.</h1></body></html>'
+
+def webrequest(conn):
+    """A Bluelet coroutine implementing an HTTP server."""
+    # Get the HTTP request.
+    request = []
+    while True:
+        line = (yield conn.readline(b'\r\n')).strip()
+        if not line:
+            # End of headers.
+            break
+        request.append(line)
+    
+
+    # Make sure a request was sent.
+    if not request:
+        return
+    
+    # Parse and log the request and get the response values.
+    method, path, headers = parse_request(request)
+    print('%s %s' % (method, path))
+    response = respond(method, path, headers)
+    # Send response.
+    yield conn.sendall(response)
+    # for key, value in headers.items():
+    #     yield conn.sendall(("%s: %s\r\n" % (key, value)).encode('utf8'))
+    # yield conn.sendall(b"\r\n")
+    # yield conn.sendall(content)
+
+def connectclient():
+    if len(sys.argv) > 1:
+        ROOT = os.path.expanduser(sys.argv[1])
+    print('http://127.0.0.1:8000/')
+    bluelet.run(bluelet.server('', 8000, webrequest))

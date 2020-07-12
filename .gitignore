@@ -1,2 +1,5 @@
 Own_Custom_Proxy.egg-info
 ownproxyvenv
+context/__pycache__
+client/__pycache__/
+server/__pycache__/

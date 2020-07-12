@@ -1,24 +1,69 @@
+
+from urllib.parse import urlparse
+from urllib.request import urlopen
 import socket
-import sys
 
-class proxyserve:
-    def __init__(self):
-        self.serverSocket = ''
-        self.buffer_size = 4096
+class AsyncHTTPClient(object):
+    """A basic Bluelet-based asynchronous HTTP client. Only supports
+    very simple GET queries.
+    """
+    def __init__(self, host, port, path, headers, method):
+        self.host = host.decode('utf-8')
+        self.hostname = socket.gethostbyname(self.host)
+        self.port = port
+        self.path = path.decode('utf-8')
+        self.header = headers
+        self.method = method.decode('utf-8')
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def headers(self):
+        """Returns the HTTP headers for this request."""
+        heads = [
+            "%s %s HTTP/1.1" % (self.method,self.path)
+        ]
+        heads.extend(self.header)
+        return "\r\n".join(heads).encode('utf8') + b"\r\n\r\n"
+
+
+    # Convenience methods.
+
+    @classmethod
+    def from_url(cls, url, header, method):
+        """Construct a request for the specified URL."""
+        res = urlparse(url)
+        path = res.path
+        if res.query:
+            path += '?' + res.query
+        return cls(res.hostname, res.port or 80, path, header, method)
+
+    @classmethod
+    def fetch(cls, url, header, method):
+        """Fetch content from an HTTP URL. This is a coroutine suitable
+        for yielding to bluelet.
+        """
+        client = cls.from_url(url, header, method)
+        client._connect()
+        client._request()
+        return client._read()
     
-    def createProxyServer(self, webserver, port, conn, data, addr):
-        try:
-            host = socket.gethostbyname(webserver)
-            self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.serverSocket.connect((host, port))
-            self.serverSocket.sendall(data)
 
-            while True:
-                reply = self.serverSocket.recv(self.buffer_size)
-                if(len(reply) > 0):
-                    yield reply
-                else:
-                    break
-            self.serverSocket.close()
-        except Exception as e:
-            sys.exit(1)
+    # Internal coroutines.
+
+    def _connect(self):
+        self.sock.connect((self.hostname, self.port))
+
+    def _request(self):
+        print(self.headers())
+        self.sock.sendall(self.headers())
+
+    def _read(self):
+        buf = []
+        res = b''
+        while True:
+            data = self.sock.recv(4096)
+            if not data:
+                break
+            buf.append(data)
+            res += data
+
+        return res
