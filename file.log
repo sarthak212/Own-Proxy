@@ -1,9 +1,0 @@
-INFO:root:Starting Server
-INFO:root:http://127.0.0.1:8091/
-INFO:root:GET http://goidirectory.nic.in/index.php
-INFO:root:GET http://goidirectory.nic.in/css/style1.css
-INFO:root:GET http://goidirectory.nic.in/css/unionnew_style.css
-INFO:root:GET http://goidirectory.nic.in/css/static_style.css
-INFO:root:GET http://goidirectory.nic.in/css/level2.css
-INFO:root:GET http://goidirectory.nic.in/css/ajax-tooltip.css
-INFO:root:GET http://goidirectory.nic.in/javascript/validation.js

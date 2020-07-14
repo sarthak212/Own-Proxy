@@ -54,7 +54,7 @@ def webrequest(conn):
     
     # Parse and log the request and get the response values.
     method, path, headers = parse_request(request)
-    log_connect(method.decode('utf-8'), path.decode('utf-8'))
+    log_connect(method.decode('utf-8'), header[0]+path.decode('utf-8'))
     response = respond(method, path, headers)
     # Send response.
     yield conn.sendall(response)

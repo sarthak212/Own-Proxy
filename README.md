@@ -14,11 +14,29 @@ or
 
     source ownproxyvenv/bin/activate
 
+Create Your keys with
+
+    python3 key_create.py
+
+Copy Keys to server root directory
+
 For run in client mode run command
 
-    ownproxy-client
+    ownproxy-client --help
+  
+  Options
+
+	--port Option on which local server is running (Optional)
+	
+	--rhost Remote IP address (Required)
+
+	--rport Remote Port 
 
 For run this on your server
 
-    ownproxy-server 
+    ownproxy-server --help
+
+  Options
+
+	--port In which server is listening
 

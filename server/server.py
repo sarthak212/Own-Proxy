@@ -8,7 +8,7 @@ class AsyncHTTPClient(object):
     very simple GET queries.
     """
     def __init__(self, host, port, path, headers, method):
-        self.host = host.decode('utf-8')
+        self.host = host
         self.hostname = socket.gethostbyname(self.host)
         self.port = port
         self.path = path.decode('utf-8')
@@ -33,7 +33,8 @@ class AsyncHTTPClient(object):
         path = res.path
         if res.query:
             path += b'?' + res.query
-        return cls(res.hostname, res.port or 80, path, header, method)
+        hostname = header[0].split(': ')[1]
+        return cls(hostname, res.port or 80, path, header, method)
 
     @classmethod
     def fetch(cls, url, header, method):

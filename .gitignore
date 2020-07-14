@@ -1,5 +1,8 @@
 Own_Custom_Proxy.egg-info
 ownproxyvenv
+private_key.pem
+public_key.pem
+file.log
 context/__pycache__
 client/__pycache__/
 server/__pycache__/

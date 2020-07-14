@@ -2,6 +2,7 @@
 from urllib.parse import urlparse
 from urllib.request import urlopen
 import socket
+from context.log import log_info, log_error,log_warning
 
 class AsyncHTTPClient(object):
     """A basic Bluelet-based asynchronous HTTP client. Only supports
@@ -38,11 +39,11 @@ class AsyncHTTPClient(object):
         return cls(res.hostname, res.port or 80, path, header, method,rhost,rport)
 
     @classmethod
-    def fetch(cls, url, header, method):
+    def fetch(cls, url, header, method,rhost,rport):
         """Fetch content from an HTTP URL. This is a coroutine suitable
         for yielding to bluelet.
         """
-        client = cls.from_url(url, header, method)
+        client = cls.from_url(url, header, method,rhost,rport)
         client._connect()
         client._request()
         return client._read()
@@ -65,5 +66,4 @@ class AsyncHTTPClient(object):
                 break
             buf.append(data)
             res += data
-
         return res
