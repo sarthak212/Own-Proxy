@@ -7,14 +7,15 @@ class AsyncHTTPClient(object):
     """A basic Bluelet-based asynchronous HTTP client. Only supports
     very simple GET queries.
     """
-    def __init__(self, host, port, path, headers, method):
+    def __init__(self, host, port, path, headers, method,Rhost,Rport):
         self.host = host.decode('utf-8')
         self.hostname = socket.gethostbyname(self.host)
         self.port = port
         self.path = path.decode('utf-8')
         self.header = headers
         self.method = method.decode('utf-8')
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.rhost = Rhost
+        self.rport = Rport
 
     def headers(self):
         """Returns the HTTP headers for this request."""
@@ -28,13 +29,13 @@ class AsyncHTTPClient(object):
     # Convenience methods.
 
     @classmethod
-    def from_url(cls, url, header, method):
+    def from_url(cls, url, header, method,rhost,rport):
         """Construct a request for the specified URL."""
         res = urlparse(url)
         path = res.path
         if res.query:
-            path += '?' + res.query
-        return cls(res.hostname, res.port or 80, path, header, method)
+            path += b'?' + res.query
+        return cls(res.hostname, res.port or 80, path, header, method,rhost,rport)
 
     @classmethod
     def fetch(cls, url, header, method):
@@ -50,10 +51,9 @@ class AsyncHTTPClient(object):
     # Internal coroutines.
 
     def _connect(self):
-        self.sock.connect((self.hostname, self.port))
+        self.sock = socket.create_connection((self.rhost, self.rport))
 
     def _request(self):
-        print(self.headers())
         self.sock.sendall(self.headers())
 
     def _read(self):

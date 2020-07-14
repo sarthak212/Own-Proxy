@@ -1,2 +1,4 @@
+from context import log
+from .connections import startserver
 def run():
-    print("inside server two three")
+    startserver()

@@ -1,4 +1,4 @@
 from .connections import connectclient
+from context import log
 def run():
-    print("Starting Client")
     k = connectclient()

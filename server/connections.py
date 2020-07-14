@@ -4,26 +4,21 @@ import os
 import mimetypes
 sys.path.insert(0, '..')
 from context import bluelet
-from .proxyserver import AsyncHTTPClient
+from .server import AsyncHTTPClient
 import json
 from context.log import log_connect, log_info, log_warning, log_error
 from context import optionparser
 
 Port = 8000
-RPort = 8091
-RHost = ''
+
 
 def parserargs():
     global Port
     global RPort
     global RHost
-    args = optionparser.client()
+    args = optionparser.server()
     if(args.port):
         Port = args.port
-    if(args.rport):
-        RPort = args.rport
-    if(args.rhost):
-        RHost = args.rhost
 
 def parse_request(lines):
     """Parse an HTTP request."""
@@ -38,7 +33,7 @@ def parse_request(lines):
 
 
 def respond(method, path, headers):
-    data = AsyncHTTPClient.fetch(path,headers,method,RHost,RPort)
+    data = AsyncHTTPClient.fetch(path,headers,method)
     return data
 
 def webrequest(conn):
@@ -63,19 +58,10 @@ def webrequest(conn):
     response = respond(method, path, headers)
     # Send response.
     yield conn.sendall(response)
-    # for key, value in headers.items():
-    #     yield conn.sendall(("%s: %s\r\n" % (key, value)).encode('utf8'))
-    # yield conn.sendall(b"\r\n")
-    # yield conn.sendall(content)
 
-def connectclient():
+def startserver():
     if len(sys.argv) > 1:
         parserargs()
-        Rstring = "Remote Server "+RHost + ":" + str(RPort)
-        log_info(Rstring)
-    if(not RHost):
-        log_error("No Remote Address")
-        sys.exit(2)
-    log_info("Starting Client")
+    log_info("Starting Server")
     log_info('http://127.0.0.1:'+str(Port)+'/')
     bluelet.run(bluelet.server('', Port, webrequest))
