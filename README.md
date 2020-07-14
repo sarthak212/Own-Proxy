@@ -18,7 +18,7 @@ Create Your keys with
 
     python3 key_create.py
 
-Copy Keys to server root directory
+Copy private Key file to server root directory and keep public key file to your client directory. Algorithm used is RSA 
 
 For run in client mode run command
 
