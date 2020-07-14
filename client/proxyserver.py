@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 import socket
 from context.log import log_info, log_error,log_warning
+from context import encrypt
 
 class AsyncHTTPClient(object):
     """A basic Bluelet-based asynchronous HTTP client. Only supports
@@ -55,7 +56,7 @@ class AsyncHTTPClient(object):
         self.sock = socket.create_connection((self.rhost, self.rport))
 
     def _request(self):
-        self.sock.sendall(self.headers())
+        self.sock.sendall(encrypt.encrypt(self.headers()))
 
     def _read(self):
         buf = []

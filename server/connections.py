@@ -8,14 +8,13 @@ from .server import AsyncHTTPClient
 import json
 from context.log import log_connect, log_info, log_warning, log_error
 from context import optionparser
+from context import decrypt
 
 Port = 8000
 
 
 def parserargs():
     global Port
-    global RPort
-    global RHost
     args = optionparser.server()
     if(args.port):
         Port = args.port
@@ -53,7 +52,7 @@ def webrequest(conn):
         return
     
     # Parse and log the request and get the response values.
-    method, path, headers = parse_request(request)
+    method, path, headers = parse_request(decrypt.decrypt(request))
     log_connect(method.decode('utf-8'), header[0]+path.decode('utf-8'))
     response = respond(method, path, headers)
     # Send response.

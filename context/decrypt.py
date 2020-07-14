@@ -20,4 +20,5 @@ def decrypt(message):
             label=None
         )
     )
-    return original_message
+    message = [i.strip() for i in original_message.split(b'\r\n')]
+    return message
